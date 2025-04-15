@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Materia {
+  id          Int     @id @default(autoincrement())
+  nome        String
+  descricao   String?
+  aulas       Aula[]
+  roadmapItems RoadmapItem[]
+  professores Professor[] // Adicionar este campo para a relação inversa
+}
+
+model Professor {
+  id         Int     @id @default(autoincrement())
+  nome       String
+  email      String  @unique
+  senha      String? // Campo de senha em texto simples (opcional)
+  materiaId  Int?    // Campo para associar professor à matéria
+  materia    Materia? @relation(fields: [materiaId], references: [id])
+  aulas      Aula[]
+}
+
+model Aula {
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  data        DateTime
+  descricao   String?
+  materiaId   Int
+  professorId Int
+  roadmapId   Int?
+  materia     Materia  @relation(fields: [materiaId], references: [id])
+  professor   Professor @relation(fields: [professorId], references: [id])
+  roadmap     RoadmapItem? @relation(fields: [roadmapId], references: [id])
+  avaliacoes  Avaliacao[]
+}
+
+model RoadmapItem {
+  id                Int      @id @default(autoincrement())
+  titulo            String
+  nivel             Int      @default(1)
+  descricao         String?
+  materiaId         Int
+  materia           Materia  @relation(fields: [materiaId], references: [id])
+  aulas             Aula[]
+  recursos          Recurso[]
+  prerequisitosDe   Prerequisito[] @relation("PreRequisitosDe")
+  prerequisitosPara Prerequisito[] @relation("PrerequisitoPara")
+}
+
+model Prerequisito {
+  id               Int        @id @default(autoincrement())
+  itemId           Int
+  prerequisitoId   Int
+  item             RoadmapItem @relation("PreRequisitosDe", fields: [itemId], references: [id])
+  prerequisito     RoadmapItem @relation("PrerequisitoPara", fields: [prerequisitoId], references: [id])
+
+  @@unique([itemId, prerequisitoId])
+}
+
+model Recurso {
+  id          Int        @id @default(autoincrement())
+  titulo      String
+  url         String
+  tipo        String     // video, artigo, exercicio
+  roadmapId   Int
+  roadmapItem RoadmapItem @relation(fields: [roadmapId], references: [id])
+}
+
+model Avaliacao {
+  id      Int   @id @default(autoincrement())
+  nota    Int
+  aulaId  Int
+  alunoId Int
+  aula    Aula  @relation(fields: [aulaId], references: [id])
+  aluno   Aluno @relation(fields: [alunoId], references: [id])
+
+  @@unique([aulaId, alunoId])
+}
+
+model Aluno {
+  id         Int        @id @default(autoincrement())
+  nome       String
+  email      String     @unique
+  senha      String?    // Campo de senha em texto simples (opcional)
+  avaliacoes Avaliacao[]
+}

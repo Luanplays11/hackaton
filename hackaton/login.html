@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Roadmap Escolar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    .container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 450px;
+      padding: 30px;
+    }
+    
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #4CAF50;
+    }
+    
+    .tab-buttons {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .tab-button {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: #666;
+      transition: all 0.3s;
+    }
+    
+    .tab-button.active {
+      color: #4CAF50;
+      font-weight: bold;
+      border-bottom: 3px solid #4CAF50;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #555;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    
+    select {
+      appearance: none;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>') no-repeat;
+      background-position: calc(100% - 15px) center;
+      background-color: white;
+    }
+    
+    .role-selector {
+      display: flex;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .role-option {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      background: #f5f5f5;
+    }
+    
+    .role-option.active {
+      background: #4CAF50;
+      color: white;
+    }
+    
+    button[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    button[type="submit"]:hover {
+      background-color: #3e8e41;
+    }
+    
+    .form-footer {
+      margin-top: 25px;
+      text-align: center;
+      color: #666;
+    }
+    
+    .form-footer a {
+      color: #4CAF50;
+      text-decoration: none;
+    }
+    
+    .error-message {
+      color: #f44336;
+      background-color: #ffebee;
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .success-message {
+      color: #4CAF50;
+      background-color: #e8f5e9;
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="logo">
+    <h1>Roadmap Escolar</h1>
+    <p>Entre ou cadastre-se na plataforma</p>
+  </div>
+
+  <div class="tab-buttons">
+    <button class="tab-button active" data-tab="login">Login</button>
+    <button class="tab-button" data-tab="registro">Registro</button>
+  </div>
+  
+  <div id="error-message" class="error-message"></div>
+  <div id="success-message" class="success-message"></div>
+
+  <!-- Formulário de Login -->
+  <form id="login-form">
+    <div class="form-group">
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" required placeholder="seu.email@exemplo.com">
+    </div>
+    
+    <div class="form-group">
+      <label for="login-senha">Senha</label>
+      <input type="password" id="login-senha" required placeholder="********">
+    </div>
+    
+    <button type="submit">Entrar</button>
+    
+    <div class="form-footer">
+      Não tem uma conta? <a href="#" id="go-to-register">Cadastre-se</a>
+    </div>
+  </form>
+
+  <!-- Formulário de Registro -->
+  <form id="registro-form" style="display: none;">
+    <div class="role-selector">
+      <div class="role-option active" data-role="aluno">Aluno</div>
+      <div class="role-option" data-role="professor">Professor</div>
+    </div>
+    
+    <div class="form-group">
+      <label for="registro-nome">Nome Completo</label>
+      <input type="text" id="registro-nome" required placeholder="Seu nome completo">
+    </div>
+    
+    <div class="form-group">
+      <label for="registro-email">Email</label>
+      <input type="email" id="registro-email" required placeholder="seu.email@exemplo.com">
+    </div>
+    
+    <div class="form-group">
+      <label for="registro-senha">Senha</label>
+      <input type="password" id="registro-senha" required placeholder="********">
+    </div>
+    
+    <div class="form-group" id="materia-group" style="display: none;">
+      <label for="registro-materia">Matéria que leciona</label>
+      <select id="registro-materia">
+        <option value="">Selecione uma matéria</option>
+      </select>
+    </div>
+    
+    <button type="submit">Cadastrar</button>
+    
+    <div class="form-footer">
+      Já tem uma conta? <a href="#" id="go-to-login">Faça login</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Variáveis globais
+  let materias = [];
+  let usuarioTipo = 'aluno';
+  
+  // Função para alternar entre as abas
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      
+      const tab = button.getAttribute('data-tab');
+      if (tab === 'login') {
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('registro-form').style.display = 'none';
+      } else {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('registro-form').style.display = 'block';
+      }
+      
+      hideMessages();
+    });
+  });
+  
+  // Links para alternar entre login e registro
+  document.getElementById('go-to-register').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelector('.tab-button[data-tab="registro"]').click();
+  });
+  
+  document.getElementById('go-to-login').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelector('.tab-button[data-tab="login"]').click();
+  });
+  
+  // Seleção de tipo de usuário (aluno/professor)
+  document.querySelectorAll('.role-option').forEach(option => {
+    option.addEventListener('click', () => {
+      document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('active'));
+      option.classList.add('active');
+      
+      usuarioTipo = option.getAttribute('data-role');
+      const materiaGroup = document.getElementById('materia-group');
+      
+      if (usuarioTipo === 'professor') {
+        materiaGroup.style.display = 'block';
+      } else {
+        materiaGroup.style.display = 'none';
+      }
+    });
+  });
+  
+  // Carregar matérias para o select
+  async function carregarMaterias() {
+    try {
+      const response = await fetch('http://localhost:3000/materias');
+      if (!response.ok) {
+        throw new Error('Erro ao carregar matérias');
+      }
+      
+      materias = await response.json();
+      const select = document.getElementById('registro-materia');
+      
+      materias.forEach(materia => {
+        const option = document.createElement('option');
+        option.value = materia.id;
+        option.textContent = materia.nome;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Erro ao carregar matérias:', error);
+      showError('Não foi possível carregar as matérias. Verifique se o servidor está rodando.');
+    }
+  }
+  
+  // Mostrar mensagem de erro
+  function showError(message) {
+    const errorElement = document.getElementById('error-message');
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+    document.getElementById('success-message').style.display = 'none';
+  }
+  
+  // Mostrar mensagem de sucesso
+  function showSuccess(message) {
+    const successElement = document.getElementById('success-message');
+    successElement.textContent = message;
+    successElement.style.display = 'block';
+    document.getElementById('error-message').style.display = 'none';
+  }
+  
+  // Ocultar mensagens
+  function hideMessages() {
+    document.getElementById('error-message').style.display = 'none';
+    document.getElementById('success-message').style.display = 'none';
+  }
+  
+  // Submissão do formulário de login
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessages();
+    
+    const email = document.getElementById('login-email').value;
+    const senha = document.getElementById('login-senha').value;
+    
+    try {
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, senha })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro no login');
+      }
+      
+      // Login bem-sucedido - armazenar apenas o nome do usuário
+      localStorage.setItem('userName', data.nome);
+      localStorage.setItem('userType', data.tipo); // Opcional, caso queira diferenciar aluno de professor
+      
+      showSuccess('Login realizado com sucesso! Redirecionando...');
+      
+      // Redirecionar para a página inicial
+      setTimeout(() => {
+        window.location.href = 'home.html';
+      }, 1500);
+      
+    } catch (error) {
+      showError(error.message || 'Falha no login. Verifique suas credenciais.');
+    }
+  });
+  
+  // Submissão do formulário de registro
+  document.getElementById('registro-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessages();
+    
+    const nome = document.getElementById('registro-nome').value;
+    const email = document.getElementById('registro-email').value;
+    const senha = document.getElementById('registro-senha').value;
+    const materiaId = document.getElementById('registro-materia').value;
+    
+    // Validações básicas
+    if (senha.length < 6) {
+      showError('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    
+    if (usuarioTipo === 'professor' && !materiaId) {
+      showError('Professor deve selecionar uma matéria');
+      return;
+    }
+    
+    try {
+      const endpoint = usuarioTipo === 'aluno' ? '/registro/aluno' : '/registro/professor';
+      const payload = usuarioTipo === 'aluno' 
+        ? { nome, email, senha } 
+        : { nome, email, senha, materiaId };
+      
+      const response = await fetch(`http://localhost:3000${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro no cadastro');
+      }
+      
+      // Registro bem-sucedido - armazenar apenas o nome
+      localStorage.setItem('userName', data.nome);
+      localStorage.setItem('userType', data.tipo); // Opcional
+      
+      showSuccess('Cadastro realizado com sucesso! Redirecionando...');
+      
+      // Redirecionar para a página inicial
+      setTimeout(() => {
+        window.location.href = 'home.html';
+      }, 1500);
+      
+    } catch (error) {
+      showError(error.message || 'Falha no cadastro. Tente novamente.');
+    }
+  });
+  
+  // Execução inicial
+  document.addEventListener('DOMContentLoaded', () => {
+    carregarMaterias();
+    
+    // Redirecionar se já estiver autenticado
+    const token = localStorage.getItem('userToken');
+    if (token) {
+      window.location.href = 'home.html';
+    }
+  });
+</script>
+
+</body>
+</html>

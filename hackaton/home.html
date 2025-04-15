@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Roadmap Escolar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f2f2f2; }
+    header { 
+      background-color: #4CAF50; 
+      color: white; 
+      padding: 1rem; 
+      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-title {
+      flex-grow: 1;
+    }
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 10px;
+    }
+    .user-icon {
+      width: 40px;
+      height: 40px;
+      background-color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .user-name {
+      font-size: 1rem;
+    }
+    section { padding: 2rem; }
+    h2 { color: #333; }
+    .materia-card {
+      background-color: white;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .aula-card {
+      background-color: #f9f9f9;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      margin-left: 1.5rem;  /* Recuo para distinguir das matérias */
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-left: 3px solid #4CAF50;
+    }
+    .avaliacao {
+      margin-top: 1rem;
+    }
+    .avaliacao input {
+      width: 50px;
+    }
+    
+    /* Estilo para o botão de recursos adicionais */
+    .recursos-btn {
+      display: inline-block;
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+      margin-top: 15px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .recursos-btn:hover {
+      background-color: #3e8e41;
+    }
+
+    .materia-card.selected {
+      border-left: 4px solid #4CAF50;
+      background-color: #f9fff9;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+    
+    .aulas-container {
+      margin-top: 10px;
+      display: none;  /* Inicialmente oculto */
+    }
+    
+    .aulas-titulo {
+      margin-top: 10px;
+      font-size: 1.1rem;
+      color: #4CAF50;
+      font-weight: bold;
+    }
+  </style>
+
+  <script>
+    // Verificar autenticação
+    document.addEventListener('DOMContentLoaded', () => {
+      const userName = localStorage.getItem('userName');
+      
+      if (!userName) {
+        // Redirecionar para login se não estiver logado
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // Atualizar a UI com o nome do usuário
+      const userNameElement = document.querySelector('.user-name');
+      if (userNameElement) {
+        userNameElement.textContent = userName;
+      }
+      
+      const userIconElement = document.querySelector('.user-icon');
+      if (userIconElement) {
+        userIconElement.textContent = userName.charAt(0).toUpperCase();
+      }
+      
+      // Adicionar botão de logout na UI
+      const userProfile = document.querySelector('.user-profile');
+      if (userProfile) {
+        const logoutBtn = document.createElement('div');
+        logoutBtn.className = 'logout-btn';
+        logoutBtn.textContent = 'Sair';
+        logoutBtn.style.marginLeft = '10px';
+        logoutBtn.style.cursor = 'pointer';
+        logoutBtn.addEventListener('click', () => {
+          localStorage.removeItem('userName');
+          localStorage.removeItem('userType'); // Remover também caso exista
+          window.location.href = 'login.html';
+        });
+        
+        userProfile.appendChild(logoutBtn);
+      }
+    });
+  </script>
+
+  <style>
+    .logout-btn {
+      background-color: rgba(255,255,255,0.2);
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .logout-btn:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">
+      <h1>Roadmap Escolar - Auxílio ao Desempenho Acadêmico</h1>
+    </div>
+    <div class="user-profile">
+      <div class="user-icon">U</div>
+      <div class="user-name">Usuário</div>
+    </div>
+  </header>
+
+  <section id="materias">
+    <h2>Matérias</h2>
+    <!-- Os dados serão carregados dinamicamente via JavaScript -->
+    <p id="materias-loading">Carregando matérias...</p>
+  </section>
+
+  <footer style="background:#4CAF50; color:white; text-align:center; padding:1rem;">
+    &copy; 2025 - Sistema de Apoio ao Desempenho Escolar
+  </footer>
+
+  <script>
+    let materiaAtual = null;
+
+    // Carregar matérias do backend
+    async function carregarMaterias() {
+      try {
+        const response = await fetch('http://localhost:3000/materias');
+        if (!response.ok) {
+          throw new Error('Erro ao carregar matérias');
+        }
+        
+        const materias = await response.json();
+        const materiasContainer = document.getElementById('materias');
+        
+        // Limpar conteúdo existente, mantendo o título
+        const titulo = materiasContainer.querySelector('h2');
+        materiasContainer.innerHTML = '';
+        materiasContainer.appendChild(titulo);
+        
+        // Adicionar matérias dinâmicas com eventos de clique
+        materias.forEach(materia => {
+          const materiaCard = document.createElement('div');
+          materiaCard.className = 'materia-card';
+          materiaCard.setAttribute('data-id', materia.id);
+          
+          // Criar um contêiner para o conteúdo da matéria
+          const materiaContent = document.createElement('div');
+          materiaContent.className = 'materia-content';
+          materiaContent.innerHTML = `
+            <h3>${materia.nome}</h3>
+            <p>${materia.descricao || 'Sem descrição disponível'}</p>
+          `;
+          
+          // Criar um contêiner para as aulas (inicialmente vazio e oculto)
+          const aulasContainer = document.createElement('div');
+          aulasContainer.className = 'aulas-container';
+          aulasContainer.id = `aulas-materia-${materia.id}`;
+          
+          // Adicionar ao card da matéria
+          materiaCard.appendChild(materiaContent);
+          materiaCard.appendChild(aulasContainer);
+          
+          // Adicionar evento de clique para mostrar aulas desta matéria
+          materiaCard.addEventListener('click', (event) => {
+            // Ignorar cliques em aulas ou botões dentro do card
+            if (event.target.closest('.aula-card') || event.target.closest('.recursos-btn')) {
+              return;
+            }
+            
+            // Destacar a matéria selecionada
+            document.querySelectorAll('.materia-card').forEach(card => {
+              if (card !== materiaCard) {
+                card.classList.remove('selected');
+                // Ocultar aulas de outras matérias
+                const outrasAulas = card.querySelector('.aulas-container');
+                if (outrasAulas) outrasAulas.style.display = 'none';
+              }
+            });
+            
+            materiaCard.classList.toggle('selected');
+            
+            // Mostrar ou ocultar aulas desta matéria
+            const aulasContainer = materiaCard.querySelector('.aulas-container');
+            if (aulasContainer.style.display === 'block') {
+              aulasContainer.style.display = 'none';
+            } else {
+              aulasContainer.style.display = 'block';
+              // Só carregar as aulas se ainda não foram carregadas ou para atualização
+              if (aulasContainer.children.length <= 1) { // Apenas título ou vazio
+                carregarAulasPorMateria(materia.id, materia.nome, aulasContainer);
+              }
+            }
+          });
+          
+          materiasContainer.appendChild(materiaCard);
+        });
+        
+      } catch (error) {
+        console.error('Erro ao carregar matérias:', error);
+        // Mostrar mensagem de erro na interface
+        const materiasContainer = document.getElementById('materias');
+        const errorMsg = document.createElement('p');
+        errorMsg.style.color = 'red';
+        errorMsg.textContent = 'Não foi possível carregar as matérias. Verifique se o servidor está rodando.';
+        materiasContainer.appendChild(errorMsg);
+      }
+    }
+
+    // Adicione a função carregarAulasPorMateria
+    async function carregarAulasPorMateria(materiaId, materiaNome, aulasContainer) {
+      console.log("Chamando carregarAulasPorMateria para ID:", materiaId);
+      try {
+        // Mostrar indicador de carregamento
+        aulasContainer.innerHTML = '<p>Carregando aulas...</p>';
+        
+        const response = await fetch(`http://localhost:3000/aulas/materia/${materiaId}`);
+        if (!response.ok) {
+          throw new Error(`Erro ao carregar aulas da matéria ${materiaId}`);
+        }
+        
+        const aulas = await response.json();
+        console.log("Aulas recebidas:", aulas);
+        
+        // DEBUG: Verificar se as avaliações estão presentes
+        aulas.forEach((aula, index) => {
+          console.log(`Aula ${index + 1} (${aula.titulo}):`, {
+            id: aula.id,
+            avaliacoes: aula.avaliacoes,
+            temAvaliacoes: aula.avaliacoes && aula.avaliacoes.length > 0,
+            quantidadeAvaliacoes: aula.avaliacoes?.length || 0
+          });
+        });
+        
+        // Debug mais detalhado para as avaliações
+        aulas.forEach((aula, index) => {
+          console.log(`Aula ${index + 1} - ${aula.titulo}:`, {
+            id: aula.id,
+            avaliacoes: aula.avaliacoes,
+            avaliacoesArray: Array.isArray(aula.avaliacoes),
+            temAvaliacoes: aula.avaliacoes && aula.avaliacoes.length > 0,
+            quantidadeAvaliacoes: aula.avaliacoes?.length || 0
+          });
+          
+          if (aula.avaliacoes && aula.avaliacoes.length > 0) {
+            aula.avaliacoes.forEach((aval, i) => {
+              console.log(`  - Avaliação ${i+1}: aluno=${aval.alunoId} (tipo=${typeof aval.alunoId}), nota=${aval.nota} (tipo=${typeof aval.nota})`);
+            });
+          }
+        });
+        
+        // Limpar conteúdo existente
+        aulasContainer.innerHTML = '';
+        
+        // Adicionar título da seção de aulas
+        const tituloAulas = document.createElement('div');
+        tituloAulas.className = 'aulas-titulo';
+        tituloAulas.textContent = `Aulas de ${materiaNome}`;
+        aulasContainer.appendChild(tituloAulas);
+        
+        // Verificar se existem aulas
+        if (aulas.length === 0) {
+          const mensagem = document.createElement('p');
+          mensagem.textContent = 'Não há aulas cadastradas para esta matéria.';
+          aulasContainer.appendChild(mensagem);
+          return;
+        }
+        
+        // ID do aluno atual (simulando um login - em produção viria de um sistema de autenticação)
+        const alunoAtualId = 1; // Usando João Silva como exemplo
+        
+        // Adicionar aulas dinâmicas
+        aulas.forEach(aula => {
+          const aulaCard = document.createElement('div');
+          aulaCard.className = 'aula-card';
+          
+          // Formatar data
+          const data = new Date(aula.data);
+          const dataFormatada = data.toLocaleDateString('pt-BR');
+          
+          // Calcular média das notas - CORREÇÃO AQUI
+          let mediaNotas = 'Sem avaliações';
+          let totalAvaliacoes = 0;
+          
+          // Garantir que avaliacoes seja tratada como um array, mesmo se for undefined ou null
+          const avaliacoes = aula.avaliacoes || [];
+          
+          console.log(`Processando aula ${aula.id} - Avaliações:`, avaliacoes);
+          
+          if (avaliacoes.length > 0) {
+            // Usar um método mais seguro para calcular a soma
+            let somaNotas = 0;
+            avaliacoes.forEach(avaliacao => {
+              const nota = Number(avaliacao.nota);
+              if (!isNaN(nota)) {
+                somaNotas += nota;
+              }
+            });
+            
+            mediaNotas = (somaNotas / avaliacoes.length).toFixed(1);
+            totalAvaliacoes = avaliacoes.length;
+            
+            console.log(`Aula ${aula.id}: Soma=${somaNotas}, Média=${mediaNotas}, Total=${totalAvaliacoes}`);
+          }
+          
+          // Verificar se o aluno atual já avaliou esta aula
+          const avaliacaoDoAluno = avaliacoes.find(av => av.alunoId === alunoAtualId);
+          const alunoJaAvaliou = !!avaliacaoDoAluno;
+          
+          // HTML para a avaliação (diferente se o aluno já avaliou ou não)
+          let avaliacaoHTML = '';
+          
+          if (alunoJaAvaliou) {
+            // Se já avaliou, mostra a nota que deu
+            avaliacaoHTML = `
+              <div class="avaliacao-realizada">
+                <p>Você já avaliou esta aula com nota <strong>${avaliacaoDoAluno.nota}/10</strong></p>
+              </div>
+            `;
+          } else {
+            // Se não avaliou, mostra o formulário de avaliação
+            avaliacaoHTML = `
+              <div class="avaliacao">
+                <label for="nota-aula-${aula.id}">Avalie esta aula:</label>
+                <input type="number" min="0" max="10" id="nota-aula-${aula.id}" name="nota-aula-${aula.id}">
+                <button onclick="avaliarAula(${aula.id})" class="recursos-btn" style="font-size: 0.8rem; padding: 5px 10px; margin-left: 10px;">Enviar</button>
+              </div>
+            `;
+          }
+          
+          aulaCard.innerHTML = `
+            <h4>${aula.professor.nome}</h4>
+            <p>Aula: ${aula.titulo} - ${dataFormatada}</p>
+            <p>${aula.descricao || 'Sem descrição disponível'}</p>
+            
+            <div class="nota-media">
+              <span>Nota média: <span class="nota-valor">${mediaNotas}/10</span></span>
+              <span style="margin-left: 10px; font-size: 0.9em;">(${totalAvaliacoes} avaliação${totalAvaliacoes !== 1 ? 's' : ''})</span>
+            </div>
+            
+            ${avaliacaoHTML}
+            
+            ${aula.roadmapId ? 
+              `<a href="roadmap.html?materiaId=${aula.materia.id}" class="recursos-btn">📚 Recursos adicionais para esta aula</a>` : 
+              ''}
+          `;
+          
+          aulasContainer.appendChild(aulaCard);
+        });
+      } catch (error) {
+        console.error('Erro ao carregar aulas:', error);
+        // Mostrar mensagem de erro 
+        aulasContainer.innerHTML = '';
+        const errorMsg = document.createElement('p');
+        errorMsg.style.color = 'red';
+        errorMsg.textContent = `Não foi possível carregar as aulas. Erro: ${error.message}`;
+        aulasContainer.appendChild(errorMsg);
+      }
+    }
+
+    // Enviar avaliação para o backend
+    async function avaliarAula(aulaId) {
+      try {
+        const notaInput = document.getElementById(`nota-aula-${aulaId}`);
+        const nota = parseInt(notaInput.value);
+        
+        if (isNaN(nota) || nota < 0 || nota > 10) {
+          alert('Por favor, insira uma nota válida entre 0 e 10.');
+          return;
+        }
+        
+        // ID do aluno atual (simulando um login)
+        const alunoId = 1;
+        
+        const response = await fetch(`http://localhost:3000/aulas/${aulaId}/avaliar`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nota, alunoId })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Erro ao enviar avaliação');
+        }
+        
+        // Após avaliação bem-sucedida, recarregar as aulas para atualizar a UI
+        const materiaCard = document.querySelector(`.aula-card input[id="nota-aula-${aulaId}"]`).closest('.materia-card');
+        const materiaId = materiaCard.getAttribute('data-id');
+        const materiaNome = materiaCard.querySelector('.materia-content h3').textContent;
+        const aulasContainer = materiaCard.querySelector('.aulas-container');
+        
+        await carregarAulasPorMateria(materiaId, materiaNome, aulasContainer);
+        
+        alert('Avaliação enviada com sucesso!');
+      } catch (error) {
+        console.error('Erro ao avaliar aula:', error);
+        alert('Não foi possível enviar a avaliação. Tente novamente mais tarde.');
+      }
+    }
+
+    // Adicione este estilo ao cabeçalho
+    document.head.insertAdjacentHTML('beforeend', `
+      <style>
+        .nota-media {
+          background-color: #f0f8e8;
+          border-radius: 4px;
+          padding: 8px 12px;
+          margin: 10px 0;
+          display: inline-block;
+        }
+        
+        .nota-valor {
+          font-weight: bold;
+          color: #4CAF50;
+          font-size: 1.1em;
+        }
+        
+        .avaliacao-realizada {
+          background-color: #e8f5e9;
+          border-radius: 4px;
+          padding: 8px 12px;
+          margin-top: 10px;
+          border-left: 3px solid #4CAF50;
+        }
+      </style>
+    `);
+
+    // Carregar dados quando a página for carregada
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarMaterias();
+    });
+  </script>
+</body>
+</html>
+
